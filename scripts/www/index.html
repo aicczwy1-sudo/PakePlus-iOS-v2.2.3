@@ -1,629 +1,588 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>3D Word Flashcard</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Roboto, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>七下英语单词 | 单词闪卡学习器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
 
-    body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #4158d0, #9d50bb);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
+        body {
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9eef5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+        }
 
-    .container {
-      width: 100%;
-      max-width: 700px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 28px;
-    }
+        .app-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
 
-    .title {
-      color: #fff;
-      font-size: 28px;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      text-align: center;
-    }
+        /* 页面主标题 */
+        .page-title {
+            text-align: center;
+            margin-bottom: 1.2rem;
+        }
+        .page-title h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c3e66, #4a6a8e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.05);
+        }
 
-    .card-box {
-      width: 100%;
-      height: 380px;
-      perspective: 1600px;
-      cursor: pointer;
-    }
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(8px);
+            padding: 0.8rem 1.5rem;
+            border-radius: 60px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
 
-    .card {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      transform-style: preserve-3d;
-      transition: transform 0.9s cubic-bezier(0.25, 0.8, 0.25, 1);
-      border-radius: 24px;
-    }
+        .word-counter {
+            background: #2c3e66;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
 
-    .card.flipped {
-      transform: rotateY(180deg);
-    }
+        .btn-fav-list {
+            background: #ff7b89;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
 
-    .front, .back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      border-radius: 24px;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 40px 32px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-    }
+        .btn-fav-list:hover {
+            background: #e55a68;
+            transform: scale(0.97);
+        }
 
-    .back {
-      transform: rotateY(180deg);
-      background: #f7f9fc;
-    }
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 380px;
+            perspective: 1500px;
+            margin-bottom: 2rem;
+            cursor: pointer;
+        }
 
-    .word {
-      font-size: 36px;
-      font-weight: 600;
-      color: #222;
-      margin-bottom: 12px;
-      text-align: center;
-    }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.25);
+        }
 
-    .phonetic {
-      font-size: 20px;
-      color: #666;
-      margin-bottom: 8px;
-    }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
 
-    .meaning {
-      font-size: 24px;
-      color: #222;
-      text-align: center;
-      line-height: 1.4;
-    }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 32px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
 
-    .like-btn {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      background: transparent;
-      border: none;
-      font-size: 30px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
+        .card-front {
+            background: linear-gradient(135deg, #ffffff 0%, #fef9f0 100%);
+            transform: rotateY(0deg);
+        }
 
-    .like-btn:hover {
-      transform: scale(1.12);
-    }
+        .card-back {
+            background: linear-gradient(135deg, #f2f0fc 0%, #e9e4ff 100%);
+            transform: rotateY(180deg);
+            justify-content: center;
+            gap: 1rem;
+        }
 
-    .like-btn.active {
-      color: #ff5252;
-    }
+        .word-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #1f2a44;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+            word-break: break-word;
+        }
 
-    .btn-group {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+        .pronounce {
+            font-size: 1.2rem;
+            color: #5b6e8c;
+            font-family: monospace;
+            background: #eef2fa;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            display: inline-block;
+        }
 
-    .btn {
-      padding: 14px 28px;
-      border-radius: 50px;
-      border: none;
-      font-size: 16px;
-      font-weight: 600;
-      background: #fff;
-      color: #7a4cb8;
-      cursor: pointer;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-      transition: all 0.3s;
-    }
+        .part-of-speech {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #8a6e4b;
+            font-weight: 500;
+        }
 
-    .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-    }
+        .definition {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: #2d3a5e;
+            line-height: 1.4;
+            max-width: 90%;
+            text-align: center;
+        }
 
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 999;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+        .example-hint {
+            font-size: 0.85rem;
+            color: #7c6e65;
+            margin-top: 1rem;
+            font-style: italic;
+        }
 
-    .modal-body {
-      background: #fff;
-      width: 100%;
-      max-width: 600px;
-      border-radius: 20px;
-      padding: 28px;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
 
-    .modal-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
+        .btn {
+            border: none;
+            background: white;
+            padding: 0.8rem 1.6rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
 
-    .modal-head h2 {
-      font-size: 22px;
-      color: #222;
-    }
+        .btn-primary {
+            background: #2c3e66;
+            color: white;
+            box-shadow: 0 6px 14px rgba(44,62,102,0.3);
+        }
 
-    .close {
-      font-size: 28px;
-      cursor: pointer;
-      color: #666;
-    }
+        .btn-primary:hover {
+            background: #1f2e4e;
+            transform: translateY(-2px);
+        }
 
-    .word-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+        .fav-icon {
+            background: rgba(255,255,240,0.9);
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: white;
+        }
 
-    .item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: #f1f3f5;
-      border-radius: 10px;
-    }
+        .fav-icon:hover {
+            transform: scale(1.08);
+        }
 
-    .item-text {
-      font-size: 16px;
-      line-height: 1.4;
-    }
+        .fav-icon.active {
+            color: #ff4d6d;
+        }
 
-    .remove {
-      background: #ff5252;
-      color: #fff;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
-    .empty {
-      text-align: center;
-      color: #999;
-      padding: 30px 0;
-    }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 550px;
+            max-height: 70vh;
+            border-radius: 32px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.3);
+            animation: fadeUp 0.2s ease;
+        }
 
-    @media (max-width: 600px) {
-      .word { font-size: 28px; }
-      .meaning { font-size: 20px; }
-      .card-box { height: 340px; }
-    }
-  </style>
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.6rem;
+            color: #1f2a44;
+        }
+
+        .close-modal {
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-weight: bold;
+        }
+
+        .word-list {
+            list-style: none;
+        }
+
+        .word-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .word-info {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .word-meaning-small {
+            font-size: 0.8rem;
+            color: #5e6f8d;
+            margin-left: 6px;
+        }
+
+        .remove-word {
+            background: #ffefef;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            color: #c0392b;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .empty-fav {
+            text-align: center;
+            color: #9aa6b9;
+            padding: 2rem;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.7rem;
+            color: #8d9bb0;
+        }
+
+        @media (max-width: 550px) {
+            .word-title { font-size: 2rem; }
+            .definition { font-size: 1.1rem; }
+            .flip-card { height: 340px; }
+            .page-title h1 { font-size: 1.4rem; }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">3D 七下英语单词 </h1>
+<div class="app-container">
+    <div class="page-title">
+        <h1>📖 七下英语单词</h1>
+    </div>
+    <div class="toolbar">
+        <div class="word-counter" id="wordCounter">📖 单词 0 / 0</div>
+        <button class="btn-fav-list" id="viewFavBtn">❤️ 查看生词本</button>
+    </div>
 
-    <div class="card-box">
-      <div class="card" id="card">
-        <div class="front">
-          <button class="like-btn" id="likeBtn">♡</button>
-          <div class="word" id="word"></div>
-          <div class="phonetic" id="phonetic"></div>
+    <div class="flip-card" id="flipCard">
+        <div class="flip-card-inner">
+            <div class="card-front">
+                <div class="word-title" id="frontWord">loading</div>
+                <div class="pronounce" id="pronounceText"></div>
+                <div class="part-of-speech" id="partOfSpeech"></div>
+                <div style="margin-top: 20px; font-size: 0.8rem; color: #aaa;">👇 点击卡片翻转</div>
+            </div>
+            <div class="card-back">
+                <div class="definition" id="defText"></div>
+                <div class="example-hint">📘 释义 / 中文</div>
+            </div>
         </div>
-        <div class="back">
-          <div class="meaning" id="meaning"></div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="fav-icon" id="favBtn">🤍</button>
+        <button class="btn btn-primary" id="nextBtn">🎲 随机下一词</button>
+    </div>
+    <footer>✨ 点击卡片翻转 · 点击❤️收藏单词 · 生词本自动保存 · 序号=学习进度</footer>
+</div>
+
+<div id="favModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📚 我的生词本</h3>
+            <button class="close-modal" id="closeModalBtn">&times;</button>
         </div>
-      </div>
+        <div id="favListContainer">
+            <ul class="word-list" id="favList"></ul>
+        </div>
     </div>
+</div>
 
-    <div class="btn-group">
-      <button class="btn" id="randomBtn">随机切换下一个</button>
-      <button class="btn" id="vocabBtn">查看生词本</button>
-    </div>
-  </div>
-
-  <div class="modal" id="modal">
-    <div class="modal-body">
-      <div class="modal-head">
-        <h2>我的生词本</h2>
-        <span class="close" id="closeModal">×</span>
-      </div>
-      <div class="word-list" id="wordList"></div>
-    </div>
-  </div>
-
-  <script>
-    // 完整单词表
-    const words = [
-      { word: "musician", phonetic: "/mjuˈzɪʃn/", meaning: "音乐家；作曲家" },
-      { word: "playlist", phonetic: "/ˈpleɪlɪst/", meaning: "音乐播放清单" },
-      { word: "video", phonetic: "/ˈvɪdiəʊ/", meaning: "音乐短片；视频" },
-      { word: "download", phonetic: "/ˌdaʊnˈləʊd/", meaning: "下载" },
-      { word: "folk", phonetic: "/fəʊk/", meaning: "民间音乐" },
-      { word: "classical", phonetic: "/ˈklæsɪkl/", meaning: "古典的；经典的" },
-      { word: "theme", phonetic: "/θiːm/", meaning: "（乐曲的）主题，主旋律" },
-      { word: "beauty", phonetic: "/ˈbjuːti/", meaning: "美；美丽" },
-      { word: "lyrics", phonetic: "/ˈlɪrɪks/", meaning: "歌词" },
-      { word: "jasmine", phonetic: "/ˈdʒæzmɪn/", meaning: "茉莉" },
-      { word: "rock", phonetic: "/rɒk/", meaning: "摇滚乐" },
-      { word: "pop", phonetic: "/pɒp/", meaning: "流行音乐" },
-      { word: "title", phonetic: "/ˈtaɪtl/", meaning: "（乐曲等的）名称，标题，题目" },
-      { word: "popularity", phonetic: "/ˌpɒpjuˈlærəti/", meaning: "流行" },
-      { word: "unknown", phonetic: "/ˌʌnˈnəʊn/", meaning: "不出名的；无名的" },
-      { word: "well-known", phonetic: "/ˌwel ˈnəʊn/", meaning: "众所周知的" },
-      { word: "both ... and ...", phonetic: "", meaning: "不仅……而且……；……和……都" },
-      { word: "knock", phonetic: "/nɒk/", meaning: "敲；击" },
-      { word: "best-known", phonetic: "/ˌbest ˈnəʊn/", meaning: "最知名的" },
-      { word: "melody", phonetic: "/ˈmelədi/", meaning: "旋律；曲调" },
-      { word: "preference", phonetic: "/ˈprefrəns/", meaning: "偏爱；偏好" },
-      { word: "chorus", phonetic: "/ˈkɔːrəs/", meaning: "合唱团；歌唱队" },
-      { word: "charity", phonetic: "/ˈtʃærəti/", meaning: "慈善" },
-      { word: "choose", phonetic: "/tʃuːz/", meaning: "选择；挑选" },
-      { word: "actually", phonetic: "/ˈæktʃuəli/", meaning: "的确；真实地；事实上" },
-      { word: "raise", phonetic: "/reɪz/", meaning: "筹集；提升；增加；提起" },
-      { word: "homeless", phonetic: "/ˈhəʊmləs/", meaning: "无家的" },
-      { word: "stutter", phonetic: "/ˈstʌtə(r)/", meaning: "口吃；结巴" },
-      { word: "smoothly", phonetic: "/ˈsmuːðli/", meaning: "连续而流畅地" },
-      { word: "silent", phonetic: "/ˈsaɪlənt/", meaning: "不说话的；沉默的" },
-      { word: "advise", phonetic: "/ədˈvaɪz/", meaning: "劝告；忠告；建议" },
-      { word: "not only ... but also ...", phonetic: "", meaning: "不仅……而且……" },
-      { word: "rhythm", phonetic: "/ˈrɪðəm/", meaning: "节奏；韵律" },
-      { word: "calmly", phonetic: "/ˈkɑːmli/", meaning: "沉着地" },
-      { word: "shy", phonetic: "/ʃaɪ/", meaning: "羞怯的；腼腆的" },
-      { word: "relax", phonetic: "/rɪˈlæks/", meaning: "放松；休息" },
-      { word: "gain", phonetic: "/ɡeɪn/", meaning: "增加；增添" },
-      { word: "confidence", phonetic: "/ˈkɒnfɪdəns/", meaning: "信心；信任" },
-      { word: "courage", phonetic: "/ˈkʌrɪdʒ/", meaning: "勇气" },
-      { word: "solo", phonetic: "/ˈsəʊləʊ/", meaning: "单独地；独唱；独奏" },
-      { word: "describe", phonetic: "/dɪˈskraɪb/", meaning: "描述；形容" },
-      { word: "confident", phonetic: "/ˈkɒnfɪdənt/", meaning: "自信的；有自信心的" },
-      { word: "recommendation", phonetic: "/ˌrekəmenˈdeɪʃn/", meaning: "推荐；介绍；提议" },
-      { word: "offer", phonetic: "/ˈɒfə(r)/", meaning: "主动提出；自愿给予" },
-      { word: "what’s more", phonetic: "", meaning: "而且；另外" },
-      { word: "widely", phonetic: "/ˈwaɪdli/", meaning: "普遍地；广泛地" },
-      { word: "spirit", phonetic: "/ˈspɪrɪt/", meaning: "精神；心灵" },
-      { word: "athlete", phonetic: "/ˈæθliːt/", meaning: "运动员" },
-      { word: "language", phonetic: "/ˈlæŋɡwɪdʒ/", meaning: "语言" },
-      { word: "survey", phonetic: "/ˈsɜːveɪ/", meaning: "民意调查" },
-      { word: "among", phonetic: "/əˈmʌŋ/", meaning: "在……当中" },
-      { word: "chart", phonetic: "/tʃɑːt/", meaning: "图表；曲线图" },
-      { word: "communicate", phonetic: "/kəˈmjuːnɪkeɪt/", meaning: "交流；沟通" },
-      { word: "in person", phonetic: "", meaning: "亲自；当面" },
-      { word: "text", phonetic: "/tekst/", meaning: "（用手机）发短信" },
-      { word: "social", phonetic: "/ˈsəʊʃl/", meaning: "社交的；社会的" },
-      { word: "medium", phonetic: "/ˈmiːdiəm/", meaning: "媒介，手段" },
-      { word: "social media", phonetic: "", meaning: "社交媒体" },
-      { word: "chat", phonetic: "/tʃæt/", meaning: "闲聊；聊天" },
-      { word: "based on", phonetic: "", meaning: "基于" },
-      { word: "per cent", phonetic: "/pə ˈsent/", meaning: "百分之……" },
-      { word: "allow", phonetic: "/əˈlaʊ/", meaning: "允许；准许" },
-      { word: "emoji", phonetic: "/ɪˈməʊdʒi/", meaning: "表情符号" },
-      { word: "booklet", phonetic: "/ˈbʊklət/", meaning: "小册子" },
-      { word: "avoid", phonetic: "/əˈvɔɪd/", meaning: "避免；防止" },
-      { word: "embarrassment", phonetic: "/ɪmˈbærəsmənt/", meaning: "难堪" },
-      { word: "earn", phonetic: "/ɜːn/", meaning: "挣得；赚得" },
-      { word: "suitable", phonetic: "/ˈsuːtəbl/", meaning: "合适的；适宜的" },
-      { word: "go ahead", phonetic: "", meaning: "继续；着手做" },
-      { word: "properly", phonetic: "/ˈprɒpəli/", meaning: "正确地；适当地" },
-      { word: "bit", phonetic: "/bɪt/", meaning: "小量" },
-      { word: "a bit", phonetic: "", meaning: "有点儿；稍微" },
-      { word: "rude", phonetic: "/ruːd/", meaning: "粗鲁的；无礼的" },
-      { word: "cheer", phonetic: "/tʃɪə(r)/", meaning: "欢呼；喝彩；加油" },
-      { word: "cheer for", phonetic: "", meaning: "鼓励；支持" },
-      { word: "finger", phonetic: "/ˈfɪŋɡə(r)/", meaning: "手指" },
-      { word: "apologise", phonetic: "/əˈpɒlədʒaɪz/", meaning: "道歉" },
-      { word: "misunderstand", phonetic: "/ˌmɪsʌndəˈstænd/", meaning: "误解；误会" },
-      { word: "palm", phonetic: "/pɑːm/", meaning: "手掌；手心" },
-      { word: "upwards", phonetic: "/ˈʌpwədz/", meaning: "向上；向高处" },
-      { word: "request", phonetic: "/rɪˈkwest/", meaning: "要求；请求" },
-      { word: "proper", phonetic: "/ˈprɒpə(r)/", meaning: "正确的；恰当的" },
-      { word: "fix", phonetic: "/fɪks/", meaning: "解决" },
-      { word: "fault", phonetic: "/fɔːlt/", meaning: "责任；过错" },
-      { word: "speech", phonetic: "/spiːtʃ/", meaning: "演说；讲话" },
-      { word: "cross", phonetic: "/krɒs/", meaning: "穿越；越过" },
-      { word: "cultural", phonetic: "/ˈkʌltʃərəl/", meaning: "文化的；与文化有关的" },
-      { word: "divide", phonetic: "/dɪˈvaɪd/", meaning: "不同；差异" },
-      { word: "variety", phonetic: "/vəˈraɪəti/", meaning: "不同种类，多种式样" },
-      { word: "accent", phonetic: "/ˈæksənt/", meaning: "口音" },
-      { word: "in addition", phonetic: "", meaning: "此外；另外" },
-      { word: "clothing", phonetic: "/ˈkləʊðɪŋ/", meaning: "衣服；服装" },
-      { word: "realise", phonetic: "/ˈriːəlaɪz/", meaning: "认识到；意识到" },
-      { word: "bridge", phonetic: "/brɪdʒ/", meaning: "在……上架桥；消除隔阂/鸿沟" },
-      { word: "fellow", phonetic: "/ˈfeləʊ/", meaning: "同类的；同伴的" },
-      { word: "interested", phonetic: "/ˈɪntrəstɪd/", meaning: "感兴趣的；关心的" },
-      { word: "pronounce", phonetic: "/prəˈnaʊns/", meaning: "发音；读（音）" },
-      { word: "system", phonetic: "/ˈsɪstəm/", meaning: "体系；系统" },
-      { word: "gesture", phonetic: "/ˈdʒestʃə(r)/", meaning: "手势；姿势" },
-      { word: "forget", phonetic: "/fəˈɡet/", meaning: "忘记；遗忘" },
-      { word: "focus", phonetic: "/ˈfəʊkəs/", meaning: "集中（注意力、精力）" },
-      { word: "situation", phonetic: "/ˌsɪtʃuˈeɪʃn/", meaning: "情况；状况" },
-      { word: "regret", phonetic: "/rɪˈɡret/", meaning: "感到遗憾；惋惜；懊悔" },
-      { word: "in the end", phonetic: "", meaning: "最后；终于" },
-      { word: "prize", phonetic: "/praɪz/", meaning: "奖；奖赏" },
-      { word: "hug", phonetic: "/hʌɡ/", meaning: "拥抱；搂抱" },
-      { word: "effective", phonetic: "/ɪˈfektɪv/", meaning: "有效的" },
-      { word: "present", phonetic: "/prɪˈzent/", meaning: "（以某种方式）展现，显示" },
-      { word: "look through", phonetic: "", meaning: "浏览；查看" },
-      { word: "everyday", phonetic: "/ˈevrideɪ/", meaning: "每天的；日常的" },
-      { word: "elderly", phonetic: "/ˈeldəli/", meaning: "上了年纪的" },
-      { word: "rebuild", phonetic: "/ˌriːˈbɪld/", meaning: "重建；重组" },
-      { word: "cigarette", phonetic: "/ˌsɪɡəˈret/", meaning: "香烟" },
-      { word: "prevent", phonetic: "/prɪˈvent/", meaning: "阻止；阻碍" },
-      { word: "impress", phonetic: "/ɪmˈpres/", meaning: "给……留下深刻的好印象" },
-      { word: "key", phonetic: "/kiː/", meaning: "钥匙" },
-      { word: "drop", phonetic: "/drɒp/", meaning: "落下；掉下" },
-      { word: "wallet", phonetic: "/ˈwɒlɪt/", meaning: "钱包" },
-      { word: "contest", phonetic: "/ˈkɒntest/", meaning: "比赛；竞赛" },
-      { word: "lost", phonetic: "/lɒst/", meaning: "弄不懂；困惑" },
-      { word: "shelf", phonetic: "/ʃelf/", meaning: "架子；搁板" },
-      { word: "librarian", phonetic: "/laɪˈbreəriən/", meaning: "图书馆馆长；图书管理员" },
-      { word: "check out", phonetic: "", meaning: "借阅；借出" },
-      { word: "emergency", phonetic: "/ɪˈmɜːdʒənsi/", meaning: "突发事件；紧急情况" },
-      { word: "kindness", phonetic: "/ˈkaɪdnəs/", meaning: "仁慈；善良" },
-      { word: "usual", phonetic: "/ˈjuːʒuəl/", meaning: "通常的；寻常的" },
-      { word: "as usual", phonetic: "", meaning: "像往常一样；照例" },
-      { word: "neighbour", phonetic: "/ˈneɪbə(r)/", meaning: "邻居；邻人" },
-      { word: "sudden", phonetic: "/ˈsʌdn/", meaning: "突然的；忽然的" },
-      { word: "suddenly", phonetic: "/ˈsʌdnli/", meaning: "突然；忽然" },
-      { word: "attack", phonetic: "/əˈtæk/", meaning: "发作；侵袭" },
-      { word: "pale", phonetic: "/peɪl/", meaning: "灰白的；苍白的" },
-      { word: "sweat", phonetic: "/swet/", meaning: "汗" },
-      { word: "shock", phonetic: "/ʃɒk/", meaning: "使震惊；使惊愕" },
-      { word: "calm", phonetic: "/kɑːm/", meaning: "使平静；使镇静" },
-      { word: "himself", phonetic: "/hɪmˈself/", meaning: "他自己" },
-      { word: "nobody", phonetic: "/ˈnəʊbədi/", meaning: "没有人" },
-      { word: "lady", phonetic: "/ˈleɪdi/", meaning: "女士；女子" },
-      { word: "quickly", phonetic: "/ˈkwɪkli/", meaning: "迅速地；很快地" },
-      { word: "operator", phonetic: "/ˈɒpəreɪtə(r)/", meaning: "电话员；接线员" },
-      { word: "clearly", phonetic: "/ˈklɪəli/", meaning: "清楚地；清晰地" },
-      { word: "ambulance", phonetic: "/ˈæmbjələns/", meaning: "救护车" },
-      { word: "pill", phonetic: "/pɪl/", meaning: "药丸；药片" },
-      { word: "aid", phonetic: "/eɪd/", meaning: "帮助；援助" },
-      { word: "once", phonetic: "/wʌns/", meaning: "一次；曾经" },
-      { word: "at once", phonetic: "", meaning: "马上；立刻" },
-      { word: "nod", phonetic: "/nɒd/", meaning: "点头" },
-      { word: "thankful", phonetic: "/ˈθæŋkfl/", meaning: "感谢；感激" },
-      { word: "grateful", phonetic: "/ˈɡreɪtfl/", meaning: "感激的；表示感谢的" },
-      { word: "spell", phonetic: "/spel/", meaning: "拼写；用字母拼写" },
-      { word: "champion", phonetic: "/ˈtʃæmpiən/", meaning: "冠军；第一名" },
-      { word: "winner", phonetic: "/ˈwɪnə(r)/", meaning: "获胜的人；优胜者" },
-      { word: "praise", phonetic: "/preɪz/", meaning: "表扬；赞扬；称赞" },
-      { word: "mistake", phonetic: "/mɪˈsteɪk/", meaning: "（言语或行为上的）错误，失误" },
-      { word: "truth", phonetic: "/truːθ/", meaning: "真相；实情；事实；真实情况" },
-      { word: "lie", phonetic: "/laɪ/", meaning: "谎言；谎话" },
-      { word: "decision", phonetic: "/dɪˈsɪʒn/", meaning: "决定；抉择" },
-      { word: "suggestion", phonetic: "/səˈdʒestʃən/", meaning: "建议；提议" },
-      { word: "trouble", phonetic: "/ˈtrʌbl/", meaning: "问题；困难" },
-      { word: "advice", phonetic: "/ədˈvaɪs/", meaning: "建议；意见" },
-      { word: "column", phonetic: "/ˈkɒləm/", meaning: "专栏；栏目" },
-      { word: "unluckily", phonetic: "/ʌnˈlʌkɪli/", meaning: "不幸地；遗憾地；倒霉地" },
-      { word: "copy", phonetic: "/ˈkɒpi/", meaning: "抄袭；一本，一册，一份" },
-      { word: "explain", phonetic: "/ɪkˈspleɪn/", meaning: "解释；说明" },
-      { word: "lend", phonetic: "/lend/", meaning: "借给；借出" },
-      { word: "accidentally", phonetic: "/ˌæksɪˈdentəli/", meaning: "意外地；偶然地" },
-      { word: "spill", phonetic: "/spɪl/", meaning: "（使）洒出，泼出，溢出" },
-      { word: "careless", phonetic: "/ˈkeələs/", meaning: "不小心的；不仔细的；粗心的" },
-      { word: "accident", phonetic: "/ˈæksɪdənt/", meaning: "意外；偶然的事" },
-      { word: "another", phonetic: "/əˈnʌðə(r)/", meaning: "又一；再一" },
-      { word: "lifetime", phonetic: "/ˈlaɪftaɪm/", meaning: "一生；终身；有生之年" },
-      { word: "fisherman", phonetic: "/ˈfɪʃəmən/", meaning: "渔民；钓鱼的人" },
-      { word: "island", phonetic: "/ˈaɪlənd/", meaning: "岛" },
-      { word: "tie", phonetic: "/taɪ/", meaning: "系；拴" },
-      { word: "practise", phonetic: "/ˈpræktɪs/", meaning: "练习；训练" },
-      { word: "cast", phonetic: "/kɑːst/", meaning: "投（钓线）；抛（钓钩）" },
-      { word: "pole", phonetic: "/pəʊl/", meaning: "杆子；棍；杖" },
-      { word: "double", phonetic: "/ˈdʌbl/", meaning: "把……对折；折叠" },
-      { word: "end", phonetic: "/end/", meaning: "尽头；末梢" },
-      { word: "lift", phonetic: "/lɪft/", meaning: "举起；抬起" },
-      { word: "handsome", phonetic: "/ˈhænsəm/", meaning: "美观的；悦目的" },
-      { word: "as ... as ...", phonetic: "", meaning: "像……一样的" },
-      { word: "anywhere", phonetic: "/ˈeniweə(r)/", meaning: "在任何地方" },
-      { word: "though", phonetic: "/ðəʊ/", meaning: "虽然；尽管；即使" },
-      { word: "even though", phonetic: "", meaning: "尽管；虽然" },
-      { word: "hook", phonetic: "/hʊk/", meaning: "钩；钓钩；鱼钩" },
-      { word: "lip", phonetic: "/lɪp/", meaning: "嘴唇" },
-      { word: "lower", phonetic: "/ˈləʊə(r)/", meaning: "把……放低；使……降下" },
-      { word: "disappear", phonetic: "/ˌdɪsəˈpɪə(r)/", meaning: "消失；不见" },
-      { word: "village", phonetic: "/ˈvɪlɪdʒ/", meaning: "村庄；村镇" },
-      { word: "according to", phonetic: "", meaning: "依照；根据" },
-      { word: "perhaps", phonetic: "/pəˈhæps/", meaning: "可能；大概；也许" },
-      { word: "cheat", phonetic: "/tʃiːt/", meaning: "欺骗；蒙骗" },
-      { word: "tear", phonetic: "/tɪə(r)/", meaning: "眼泪；泪珠；泪水" },
-      { word: "wild", phonetic: "/waɪld/", meaning: "自然生长的；野的；野生的" },
-      { word: "wildlife", phonetic: "/ˈwaɪldlaɪf/", meaning: "野生动物；野生生物" },
-      { word: "giant", phonetic: "/ˈdʒaɪənt/", meaning: "巨大的；特大的；伟大的" },
-      { word: "bamboo", phonetic: "/ˌbæmˈbuː/", meaning: "竹；竹子" },
-      { word: "central", phonetic: "/ˈsentrəl/", meaning: "在中心的；中央的" },
-      { word: "western", phonetic: "/ˈwestən/", meaning: "西方的；西部的" },
-      { word: "land", phonetic: "/lænd/", meaning: "陆地；大地" },
-      { word: "trunk", phonetic: "/trʌŋk/", meaning: "象鼻" },
-      { word: "whale", phonetic: "/weɪl/", meaning: "鲸" },
-      { word: "kangaroo", phonetic: "/ˌkæŋɡəˈruː/", meaning: "袋鼠" },
-      { word: "balance", phonetic: "/ˈbæləns/", meaning: "平衡" },
-      { word: "dangerous", phonetic: "/ˈdeɪndʒərəs/", meaning: "危险的" },
-      { word: "gentle", phonetic: "/ˈdʒentl/", meaning: "温柔的；文静的" },
-      { word: "wing", phonetic: "/wɪŋ/", meaning: "翅膀；翼" },
-      { word: "rather", phonetic: "/ˈrɑːðə(r)/", meaning: "反而；有点儿；稍微" },
-      { word: "cage", phonetic: "/keɪdʒ/", meaning: "笼子" },
-      { word: "penguin", phonetic: "/ˈpeŋɡwɪn/", meaning: "企鹅" },
-      { word: "themselves", phonetic: "/ðəmˈselvz/", meaning: "他/她/它们自己" },
-      { word: "lecture", phonetic: "/ˈlektʃə(r)/", meaning: "讲座；演讲" },
-      { word: "display", phonetic: "/dɪˈspleɪ/", meaning: "陈列；展示" },
-      { word: "melt", phonetic: "/melt/", meaning: "（使）熔化，融化" },
-      { word: "disease", phonetic: "/dɪˈziːz/", meaning: "病；疾病" },
-      { word: "flu", phonetic: "/fluː/", meaning: "流行性感冒；流感" },
-      { word: "fever", phonetic: "/ˈfiːvə(r)/", meaning: "发烧；发热" },
-      { word: "kill", phonetic: "/kɪl/", meaning: "杀死；弄死" },
-      { word: "habitat", phonetic: "/ˈhæbɪtæt/", meaning: "（动植物的）生活环境，栖息地" },
-      { word: "pollute", phonetic: "/pəˈluːt/", meaning: "污染" },
-      { word: "suffer", phonetic: "/ˈsʌfə(r)/", meaning: "受苦；受难" },
-      { word: "set out", phonetic: "", meaning: "出发" },
-      { word: "human", phonetic: "/ˈhjuːmən/", meaning: "人" },
-      { word: "trumpet", phonetic: "/ˈtrʌmpɪt/", meaning: "小号；喇叭" },
-      { word: "smell", phonetic: "/smel/", meaning: "有……气味" },
-      { word: "delicious", phonetic: "/dɪˈlɪʃəs/", meaning: "令人开心的；令人愉快的" },
-      { word: "pool", phonetic: "/puːl/", meaning: "水坑；水塘；池塘" },
-      { word: "appear", phonetic: "/əˈpɪə(r)/", meaning: "显得；看来；似乎" },
-      { word: "nearby", phonetic: "/ˌnɪəˈbaɪ/", meaning: "在附近；不远；附近的" },
-      { word: "company", phonetic: "/ˈkʌmpəni/", meaning: "陪伴；做伴" },
-      { word: "wilderness", phonetic: "/ˈwɪldənəs/", meaning: "荒野" },
-      { word: "satisfy", phonetic: "/ˈsætɪsfaɪ/", meaning: "使满意；使满足" },
-      { word: "sky", phonetic: "/skaɪ/", meaning: "天；天空" },
-      { word: "nest", phonetic: "/nest/", meaning: "巢穴；窝" },
-      { word: "push", phonetic: "/pʊʃ/", meaning: "推动；移动" },
-      { word: "grey", phonetic: "/ɡreɪ/", meaning: "灰色的；烟灰色的" },
-      { word: "cover", phonetic: "/ˈkʌvə(r)/", meaning: "遮蔽；遮盖" },
-      { word: "soft", phonetic: "/sɒft/", meaning: "软的；柔软的" },
-      { word: "warmth", phonetic: "/wɔːmθ/", meaning: "温暖；暖和" },
-      { word: "protection", phonetic: "/prəˈtekʃn/", meaning: "保护" },
-      { word: "danger", phonetic: "/ˈdeɪndʒə(r)/", meaning: "危险；风险" },
-      { word: "net", phonetic: "/net/", meaning: "网；网状物" },
-      { word: "surface", phonetic: "/ˈsɜːfɪs/", meaning: "水面；地面" },
-      { word: "likely", phonetic: "/ˈlaɪkli/", meaning: "可能的" },
-      { word: "purpose", phonetic: "/ˈpɜːpəs/", meaning: "意图；目的" },
-      { word: "strange", phonetic: "/streɪndʒ/", meaning: "奇怪的；奇特的" },
-      { word: "thick", phonetic: "/θɪk/", meaning: "浓密的；茂密的" },
-      { word: "treetop", phonetic: "/ˈtriːtɒp/", meaning: "树梢" },
-      { word: "block", phonetic: "/blɒk/", meaning: "挡住；阻碍" },
-      { word: "humid", phonetic: "/ˈhjuːmɪd/", meaning: "温暖潮湿的" },
-      { word: "coverage", phonetic: "/ˈkʌvərɪdʒ/", meaning: "覆盖范围" },
-      { word: "climate", phonetic: "/ˈklaɪmət/", meaning: "气候" },
-      { word: "nearly", phonetic: "/ˈnɪəli/", meaning: "几乎；差不多；将近" },
-      { word: "freshwater", phonetic: "/ˈfreʃwɔːtə(r)/", meaning: "淡水的" },
-      { word: "contain", phonetic: "/kənˈteɪn/", meaning: "包含；含有；容纳" },
-      { word: "liquid", phonetic: "/ˈlɪkwɪd/", meaning: "液体的；液态的" },
-      { word: "humour", phonetic: "/ˈhjuːmə(r)/", meaning: "幽默；幽默感" },
-      { word: "analyse", phonetic: "/ˈænəlaɪz/", meaning: "分析" },
-      { word: "leaflet", phonetic: "/ˈliːflət/", meaning: "散页印刷品；传单" },
-      { word: "update", phonetic: "/ˌʌpˈdeɪt/", meaning: "更新；向……提供最新信息" },
-      { word: "wood", phonetic: "/wʊd/", meaning: "木；木头" },
-      { word: "office", phonetic: "/ˈɒfɪs/", meaning: "办公室；办公楼" },
-      { word: "fill", phonetic: "/fɪl/", meaning: "（使）充满，装满" },
-      { word: "application", phonetic: "/ˌæplɪˈkeɪʃn/", meaning: "申请；请求" },
-      { word: "interview", phonetic: "/ˈɪntəvjuː/", meaning: "采访；访谈" },
-      { word: "basic", phonetic: "/ˈbeɪsɪk/", meaning: "基本的；基础的" },
-      { word: "branch", phonetic: "/brɑːntʃ/", meaning: "树枝" },
-      { word: "root", phonetic: "/ruːt/", meaning: "根；根部" },
-      { word: "second-hand", phonetic: "/ˌsekənd ˈhænd/", meaning: "二手的；旧的" },
-      { word: "excellent", phonetic: "/ˈeksələnt/", meaning: "优秀的；杰出的；极好的" },
-      { word: "article", phonetic: "/ˈɑːtɪkl/", meaning: "（报刊上的）文章，论文，报道" },
-      { word: "factory-farmed", phonetic: "/ˈfæktri fɑːmd/", meaning: "工厂化养殖的" },
-      { word: "ton", phonetic: "/tʌn/", meaning: "吨" },
-      { word: "lead to", phonetic: "", meaning: "导致" },
-      { word: "damage", phonetic: "/ˈdæmɪdʒ/", meaning: "（有形的）损坏，破坏，损失" },
-      { word: "community", phonetic: "/kəˈmjuːnəti/", meaning: "社区；社会" },
-      { word: "flyer", phonetic: "/ˈflaɪə(r)/", meaning: "小（广告）传单" }
+<script>
+    const wordsData = [
+        { word: "musician", meaning: "n. 音乐家；作曲家", pronunciation: "/ˈmjuːzɪʃn/" }, { word: "playlist", meaning: "n. 音乐播放清单", pronunciation: "/ˈpleɪlɪst/" }, { word: "video", meaning: "n. 音乐短片；视频", pronunciation: "/ˈviːdoʊ/" }, { word: "download", meaning: "v. 下载", pronunciation: "/ˌdɑːwˈloʊdn/" }, { word: "folk", meaning: "n. 民间音乐", pronunciation: "/fəʊk/" }, { word: "classical", meaning: "adj. 古典的；经典的", pronunciation: "/ˈklæsɪkl/" }, { word: "theme", meaning: "n. (乐曲的)主题，主旋律", pronunciation: "/θiːm/" }, { word: "beauty", meaning: "n. 美；美丽", pronunciation: "/ˈbjuːti/" }, { word: "lyrics", meaning: "n. (pl.)歌词", pronunciation: "/ˈlɪrɪks/" }, { word: "jasmine", meaning: "n. 茉莉花", pronunciation: "/ˈdʒæzmɪn/" }, { word: "rock", meaning: "n. 摇滚乐", pronunciation: "/rɒk/" }, { word: "pop", meaning: "n. 流行音乐", pronunciation: "/pɒp/" }, { word: "title", meaning: "n. (乐曲等的)名称，标题，题目", pronunciation: "/ˈtaɪtl/" }, { word: "popularity", meaning: "n. 流行", pronunciation: "/ˌpɒpjʊˈlærətɪ/" }, { word: "unknown", meaning: "adj. 不出名的，无名的", pronunciation: "/ˌʌnəˈnoʊn/" }, { word: "well-known", meaning: "adj. 众所周知的", pronunciation: "/ˌwelˈnoʊn/" }, { word: "knock", meaning: "v. 敲；击", pronunciation: "/nɔːk/" }, { word: "best-known", meaning: "adj. 最知名的", pronunciation: "/ˌbestˈnoʊn/" }, { word: "melody", meaning: "n. 旋律；曲调", pronunciation: "/ˈmelədi/" }, { word: "preference", meaning: "n. 偏爱；偏好", pronunciation: "/ˈprefərəns/" }, { word: "chorus", meaning: "n. 合唱团；歌唱队", pronunciation: "/ˈkɔːrəs/" }, { word: "charity", meaning: "n. 慈善", pronunciation: "/ˈtʃærəti/" }, { word: "choose", meaning: "v. 选择；挑选", pronunciation: "/tʃuːz/" }, { word: "actually", meaning: "adv. 的确；真实地；事实上", pronunciation: "/ˈæktʃuəli/" }, { word: "raise", meaning: "v. 筹集；提升；增加；提起", pronunciation: "/reɪz/" }, { word: "homeless", meaning: "adj. 无家的", pronunciation: "/ˈhoʊmləs/" }, { word: "stutter", meaning: "n. & v. 口吃；结巴", pronunciation: "/ˈstʌtər/" }, { word: "smoothly", meaning: "adv. 连续而流畅地", pronunciation: "/ˈsmuːli/" }, { word: "silent", meaning: "adj. 不说话；沉默的", pronunciation: "/ˈsaɪlənt/" }, { word: "advise", meaning: "v. 劝告；忠告；建议", pronunciation: "/ədˈvaɪz/" }, { word: "rhythm", meaning: "n. 节奏；韵律", pronunciation: "/ˈrɪðəm/" }, { word: "calmly", meaning: "adv. 沉着地", pronunciation: "/ˈkæmli/" }, { word: "shy", meaning: "adj. 羞怯的；腼腆的", pronunciation: "/ʃaɪ/" }, { word: "relax", meaning: "v. 放松；休息", pronunciation: "/rɪˈlæks/" }, { word: "gain", meaning: "v. 增加；增添", pronunciation: "/ɡeɪn/" }, { word: "confidence", meaning: "n. 信心；信任", pronunciation: "/ˈkɑːnfɪdəns/" }, { word: "courage", meaning: "n. 勇气", pronunciation: "/ˈkɔːrɪdʒ/" }, { word: "solo", meaning: "adv. 单独地", pronunciation: "/ˈsoʊləʊ/" }, { word: "describe", meaning: "v. 描述；形容", pronunciation: "/dɪˈskraɪb/" }, { word: "confident", meaning: "adj. 自信的；有自信心的", pronunciation: "/ˈkɒnfɪdənt/" }, { word: "recommendation", meaning: "n. 推荐；介绍；提议", pronunciation: "/ˌrekəˈmenʃən/" }, { word: "offer", meaning: "v. 主动提出；自愿给予", pronunciation: "/ˈɒfər/" }, { word: "widely", meaning: "adv. 普遍地；广泛地", pronunciation: "/ˈwaɪdlɪ/" }, { word: "spirit", meaning: "n. 精神；心灵", pronunciation: "/ˈspɪrɪt/" }, { word: "athlete", meaning: "n. 运动员", pronunciation: "/ˈæθlaɪt/" },
+        { word: "language", meaning: "n. 语言", pronunciation: "/ˈlæŋɡwɪdʒ/" }, { word: "survey", meaning: "n. 民意调查", pronunciation: "/ˈsɜːveɪ/" }, { word: "among", meaning: "prep. 在...当中", pronunciation: "/əˈmʌŋ/" }, { word: "chart", meaning: "n. 图表；曲线图", pronunciation: "/ˈtʃɑːt/" }, { word: "communicate", meaning: "v. 交流；沟通", pronunciation: "/kəˈmjuːnɪkeɪt/" }, { word: "text", meaning: "v. (用手机给某人)发短信", pronunciation: "/tekst/" }, { word: "social", meaning: "adj. 社会的；交际的", pronunciation: "/ˈsəʊʃəl/" }, { word: "medium", meaning: "n. (pl. media) 媒介，手段", pronunciation: "/ˈmiːdiəm/" }, { word: "chat", meaning: "v. 闲聊；聊天", pronunciation: "/tʃæt/" }, { word: "percent", meaning: "n. adj. & adv. 百分之...", pronunciation: "/pəˈsent/" }, { word: "allow", meaning: "v. 允许；准许", pronunciation: "/əˈlaʊ/" }, { word: "emoji", meaning: "n. 表情符号", pronunciation: "/ˈɛmoʊji/" }, { word: "booklet", meaning: "n. 小册子", pronunciation: "/ˈboʊklet/" }, { word: "avoid", meaning: "v. 避免；防止", pronunciation: "/əˈvɔɪd/" }, { word: "embarrassment", meaning: "n. 难堪", pronunciation: "/ɪmˈbærəsmənt/" }, { word: "earn", meaning: "v. 挣得；赚得", pronunciation: "/ɜːrn/" }, { word: "suitable", meaning: "adj. 合适的；适宜的", pronunciation: "/ˈsuːtəbl/" }, { word: "properly", meaning: "adv. 适当地", pronunciation: "/ˈprɑːpəli/" }, { word: "bit", meaning: "n. 小量", pronunciation: "/bit/" }, { word: "rude", meaning: "adj. 粗鲁的；无礼的", pronunciation: "/ruːd/" }, { word: "cheer", meaning: "v. 欢呼；加油", pronunciation: "/tʃɪər/" }, { word: "finger", meaning: "n. 手指", pronunciation: "/ˈfɪŋɡər/" }, { word: "apologise", meaning: "v. 道歉", pronunciation: "/əˈpɒlədʒaɪz/" }, { word: "misunderstand", meaning: "v. 误解；误会", pronunciation: "/ˌmɪsʌndˈstænd/" }, { word: "palm", meaning: "n. 手掌；手心", pronunciation: "/pɑːm/" }, { word: "upwards", meaning: "adv. 向上；向高处", pronunciation: "/ˈʌpwɝdz/" }, { word: "request", meaning: "n. 要求；请求", pronunciation: "/rɪˈkwest/" }, { word: "proper", meaning: "adj. 正确的；恰当的", pronunciation: "/ˈprɑːpə(r)/" }, { word: "fix", meaning: "v. 解决", pronunciation: "/fɪks/" }, { word: "fault", meaning: "n. 责任；过错", pronunciation: "/fɔːlt/" }, { word: "speech", meaning: "n. 演说；讲话", pronunciation: "/spiːtʃ/" }, { word: "cross", meaning: "v. 穿越；越过", pronunciation: "/krɔːs/" }, { word: "cultural", meaning: "adj. 文化的；与文化的有关", pronunciation: "/ˈkʌltʃərəl/" }, { word: "divide", meaning: "n. 不同；差异", pronunciation: "/dɪˈvaɪd/" }, { word: "variety", meaning: "n. (同一事物的)不同种类，多种式样", pronunciation: "/ˈvɛəreɪti/" }, { word: "accent", meaning: "n. 口音", pronunciation: "/ˈæksənt/" }, { word: "clothing", meaning: "n. 衣服；服装", pronunciation: "/ˈkləʊðɪŋ/" }, { word: "realise", meaning: "v. 认识到；意识到", pronunciation: "/ˈriːəlaɪz/" }, { word: "bridge", meaning: "v. 在...上架桥；消除隔阂/鸿沟", pronunciation: "/brɪdʒ/" }, { word: "fellow", meaning: "adj. 同类的；同伴的", pronunciation: "/ˈfeləʊ/" }, { word: "interested", meaning: "adj. 感兴趣的；关心的", pronunciation: "/ˈɪntrəstɪd/" }, { word: "pronounce", meaning: "v. 发音；读(音)", pronunciation: "/prəˈnaʊns/" }, { word: "system", meaning: "n. 体系；系统", pronunciation: "/ˈsɪstəm/" }, { word: "gesture", meaning: "n. 手势；姿势", pronunciation: "/ˈdʒestʃər/" }, { word: "forget", meaning: "v. 忘记；遗忘", pronunciation: "/fəˈɡet/" }, { word: "focus", meaning: "v. 集中(注意力)；精力", pronunciation: "/ˈfəʊkəs/" }, { word: "situation", meaning: "n. 情况；状况", pronunciation: "/ˌsɪtʃuˈeɪʃn/" }, { word: "regret", meaning: "v. 感到遗憾；惋惜；懊悔", pronunciation: "/rɪˈɡret/" }, { word: "prize", meaning: "n. 奖；奖金", pronunciation: "/praɪz/" }, { word: "hug", meaning: "v. 拥抱；搂抱", pronunciation: "/hʌɡ/" }, { word: "effective", meaning: "adj. 有效的", pronunciation: "/ɪˈfektɪv/" }, { word: "present", meaning: "v. (以某种方式)展现，显示", pronunciation: "/prɪˈzent/" },
+        { word: "look through", meaning: "浏览；查看", pronunciation: "" }, { word: "everyday", meaning: "adj. 每天的；日常的", pronunciation: "/ˈevriˌdeɪ/" }, { word: "elderly", meaning: "adj. 上了年纪的", pronunciation: "/ˈeldəli/" }, { word: "rebuild", meaning: "v. 重建；重组", pronunciation: "/ˌriːˈbild/" }, { word: "cigarette", meaning: "n. 香烟", pronunciation: "/ˌsɪɡəˈret/" }, { word: "prevent", meaning: "v. 阻止；阻碍", pronunciation: "/prɪˈvent/" }, { word: "impress", meaning: "v. 给……留下深刻的印象", pronunciation: "/ɪmˈpres/" }, { word: "key", meaning: "n. 钥匙", pronunciation: "/kiː/" }, { word: "drop", meaning: "v. 落下；掉下", pronunciation: "/drɒp/" }, { word: "wallet", meaning: "n. 钱包", pronunciation: "/ˈwɔːlt/" }, { word: "contest", meaning: "n. 比赛；竞赛", pronunciation: "/ˈkɒntest/" }, { word: "lost", meaning: "adj. 弄不懂；困惑", pronunciation: "/lɒst/" }, { word: "shelf", meaning: "n. 架子；搁板", pronunciation: "/ʃelf/" }, { word: "librarian", meaning: "n. 图书馆馆长；图书管理员", pronunciation: "/laɪˈbreəriən/" }, { word: "emergency", meaning: "n. 突发事件；紧急情况", pronunciation: "/ɪˈmɜːdʒənsi/" }, { word: "kindness", meaning: "n. 仁慈；善良", pronunciation: "/ˈkʌndnəs/" }, { word: "usual", meaning: "adj. 通常的；寻常的", pronunciation: "/ˈjuːʒuəl/" }, { word: "sudden", meaning: "adj. 突然的；忽然的", pronunciation: "/ˈsʌdn/" }, { word: "suddenly", meaning: "adv. 突然；忽然", pronunciation: "/ˈsʌdnli/" }, { word: "attack", meaning: "n. 发作；侵袭", pronunciation: "/əˈteɪk/" }, { word: "pale", meaning: "adj. 灰白的；苍白的", pronunciation: "/peɪl/" }, { word: "sweat", meaning: "n. 汗", pronunciation: "/swet/" }, { word: "shock", meaning: "v. 使震惊；使惊愕", pronunciation: "/ʃɒk/" }, { word: "calm", meaning: "v. 使平静；使镇静", pronunciation: "/kæm/" }, { word: "himself", meaning: "pron. 他自己；自己", pronunciation: "/hɪmˈself/" }, { word: "nobody", meaning: "pron. 没有人", pronunciation: "/ˈnəʊbədi/" }, { word: "lady", meaning: "n. 女士；女子", pronunciation: "/ˈleɪdi/" }, { word: "quickly", meaning: "adv. 迅速地；很快地", pronunciation: "/ˈkwɪklɪ/" }, { word: "operator", meaning: "n. 电话员；接线员", pronunciation: "/ˈɒpraɪtə(r)/" }, { word: "clearly", meaning: "adv. 清楚地；清晰地", pronunciation: "/ˈklɪəli/" }, { word: "ambulance", meaning: "n. 救护车", pronunciation: "/ˈæmbjələns/" }, { word: "pill", meaning: "n. 药丸；药片", pronunciation: "/pil/" }, { word: "aid", meaning: "n. 帮助；援助", pronunciation: "/eid/" }, { word: "once", meaning: "adv. 一次；曾经", pronunciation: "/wʌns/" }, { word: "nod", meaning: "v. 点头", pronunciation: "/nɒd/" }, { word: "thankful", meaning: "adj. 感谢；感激", pronunciation: "/ˈθæŋkl/" }, { word: "grateful", meaning: "adj. 感激的；表示感谢的", pronunciation: "/ˈɡreɪtfəl/" },
+        { word: "spell", meaning: "v. 拼写；用字母拼写", pronunciation: "/spel/" }, { word: "champion", meaning: "n. 冠军；第一名", pronunciation: "/ˈtʃæmpiən/" }, { word: "winner", meaning: "n. 获胜的人；优胜者", pronunciation: "/ˈwɪnə(r)/" }, { word: "praise", meaning: "v. 表扬；赞扬；称赞", pronunciation: "/preɪz/" }, { word: "mistake", meaning: "n. (言语或行为上的)错误，失误", pronunciation: "/mɪˈsteɪk/" }, { word: "truth", meaning: "n. 真相；实情", pronunciation: "/truː/" }, { word: "lie", meaning: "n. 谎言；谎话", pronunciation: "/laɪ/" }, { word: "decision", meaning: "n. 决定；抉择", pronunciation: "/dɪˈsɪʒən/" }, { word: "suggestion", meaning: "n. 建议；提议", pronunciation: "/səˈdʒestʃən/" }, { word: "trouble", meaning: "n. 问题；困难", pronunciation: "/ˈtrʌbl/" }, { word: "advice", meaning: "n. 建议；意见", pronunciation: "/ədˈvaɪs/" }, { word: "column", meaning: "n. 专栏；栏目", pronunciation: "/ˈkɒləm/" }, { word: "unluckily", meaning: "adv. 不幸地；遗憾地", pronunciation: "/ʌnˈlʌkli/" }, { word: "copy", meaning: "v. 抄袭 n. 一本", pronunciation: "/ˈkɒpi/" }, { word: "explain", meaning: "v. 解释；说明", pronunciation: "/ɪkˈspleɪn/" }, { word: "lend", meaning: "v. 借给；借出", pronunciation: "/lend/" }, { word: "accidentally", meaning: "adv. 意外地；偶然地", pronunciation: "/ˌæksɪˈdentəli/" }, { word: "spill", meaning: "v. (使)洒出，泼出", pronunciation: "/spɪl/" }, { word: "careless", meaning: "adj. 不小心的；粗心的", pronunciation: "/ˈkeələs/" }, { word: "accident", meaning: "n. 意外；偶然的事", pronunciation: "/ˈæksɪdənt/" }, { word: "another", meaning: "det. 又一；再一", pronunciation: "/əˈnʌðə/" }, { word: "lifetime", meaning: "n. 一生；终身", pronunciation: "/ˈlaɪftaɪm/" }, { word: "fisherman", meaning: "n. 渔民；钓鱼的人", pronunciation: "/ˈfɪʃəmən/" }, { word: "island", meaning: "n. 岛", pronunciation: "/ˈaɪlənd/" }, { word: "tie", meaning: "v. 系；拴", pronunciation: "/taɪ/" }, { word: "practise", meaning: "v. 练习；训练", pronunciation: "/ˈpræktɪs/" }, { word: "cast", meaning: "v. 投（钓线）；抛（钓钩）", pronunciation: "/kɑːst/" }, { word: "pole", meaning: "n. 杆子；棍；杖", pronunciation: "/pəʊl/" }, { word: "double", meaning: "v. 把……对折；折叠", pronunciation: "/ˈdʌbl/" }, { word: "end", meaning: "n. 尽头；末梢", pronunciation: "/end/" }, { word: "lift", meaning: "v. 举起；抬起", pronunciation: "/lɪft/" }, { word: "handsome", meaning: "adj. 美观的；悦目的", pronunciation: "/ˈhænsəm/" }, { word: "anywhere", meaning: "adv. 在任何地方", pronunciation: "/ˈeniweə/" }, { word: "though", meaning: "conj. 虽然；尽管", pronunciation: "/ðəʊ/" }, { word: "hook", meaning: "n. 钩；钓钩；鱼钩", pronunciation: "/hʊk/" }, { word: "lip", meaning: "n. 嘴唇", pronunciation: "/lɪp/" }, { word: "lower", meaning: "v. 把……放低；使……降下", pronunciation: "/ˈləʊə/" }, { word: "disappear", meaning: "v. 消失；不见", pronunciation: "/ˌdɪsəˈpɪə/" }, { word: "village", meaning: "n. 村庄；村镇", pronunciation: "/ˈvɪlɪdʒ/" }, { word: "perhaps", meaning: "adv. 可能；大概；也许", pronunciation: "/pəˈhæps/" }, { word: "cheat", meaning: "v. 欺骗；蒙骗", pronunciation: "/tʃiːt/" }, { word: "tear", meaning: "n. 眼泪；泪珠；泪水", pronunciation: "/tɪə/" }, { word: "set out", meaning: "出发", pronunciation: "" }, { word: "human", meaning: "n. 人", pronunciation: "/ˈhjuːmən/" }, { word: "trumpet", meaning: "n. 小号；喇叭", pronunciation: "/ˈtrʌmpɪt/" }, { word: "smell", meaning: "v. 有（或发出）……气味", pronunciation: "/smel/" }, { word: "delicious", meaning: "adj. 令人开心的；宜人的", pronunciation: "/dɪˈlɪʃəs/" }, { word: "pool", meaning: "n. 水坑；水塘", pronunciation: "/puːl/" }, { word: "appear", meaning: "v. 显得；看来；似乎", pronunciation: "/əˈpɪə/" }, { word: "nearby", meaning: "adv. 在附近；adj.附近的", pronunciation: "/ˌnɪəˈbaɪ/" }, { word: "company", meaning: "n. 陪伴；做伴", pronunciation: "/ˈkʌmpəni/" }, { word: "wilderness", meaning: "n. 荒野", pronunciation: "/ˈwɪldrɛns/" }, { word: "satisfy", meaning: "v. 使满意；使满足", pronunciation: "/ˈsætsɪfaɪ/" }, { word: "sky", meaning: "n. 天；天空", pronunciation: "/skaɪ/" }, { word: "nest", meaning: "n. 巢穴；窝", pronunciation: "/nest/" }, { word: "push", meaning: "v. 推动（人或物）", pronunciation: "/pʊʃ/" }, { word: "grey", meaning: "adj. 灰色的", pronunciation: "/ɡreɪ/" }, { word: "cover", meaning: "v. 遮蔽；遮盖", pronunciation: "/ˈkʌvə/" }, { word: "soft", meaning: "adj. 软的；柔软的", pronunciation: "/sɒft/" }, { word: "warmth", meaning: "n. 温暖；暖和", pronunciation: "/wɔːmθ/" }, { word: "protection", meaning: "n. 保护", pronunciation: "/prəˈtekʃn/" }, { word: "danger", meaning: "n. 危险", pronunciation: "/ˈdeɪndʒə/" }, { word: "net", meaning: "n. 网", pronunciation: "/net/" }, { word: "surface", meaning: "n. 水面；地面", pronunciation: "/ˈsɜːfɪs/" }, { word: "likely", meaning: "adj. 可能的", pronunciation: "/ˈlaɪkli/" }, { word: "purpose", meaning: "n. 意图；目的", pronunciation: "/ˈpɜːpəs/" }, { word: "strange", meaning: "adj. 奇怪的；奇特的", pronunciation: "/streɪndʒ/" }, { word: "thick", meaning: "adj. 浓密的", pronunciation: "/θɪk/" }, { word: "treetop", meaning: "n. 树梢", pronunciation: "/ˈtriːtɒp/" }, { word: "block", meaning: "v. 挡住；阻碍", pronunciation: "/blɒk/" }, { word: "humid", meaning: "adj. 温暖潮湿的", pronunciation: "/ˈhjuːmɪd/" }, { word: "coverage", meaning: "n. 覆盖范围", pronunciation: "/ˈkʌvərɪdʒ/" }, { word: "climate", meaning: "n. 气候", pronunciation: "/ˈklaɪmət/" }, { word: "nearly", meaning: "adv. 几乎", pronunciation: "/ˈnɪəli/" }, { word: "freshwater", meaning: "adj. 淡水的", pronunciation: "/ˈfreʃwɔːtə/" }, { word: "contain", meaning: "v. 包含；容纳", pronunciation: "/kənˈteɪn/" }, { word: "liquid", meaning: "adj. 液体的", pronunciation: "/ˈlɪkwɪd/" }, { word: "humour", meaning: "n. 幽默", pronunciation: "/ˈhjuːmə/" }, { word: "analyse", meaning: "v. 分析", pronunciation: "/ˈænəlaɪz/" }, { word: "leaflet", meaning: "n. 传单", pronunciation: "/ˈliːflɪt/" }, { word: "update", meaning: "v. 更新", pronunciation: "/ʌpˈdeɪt/" }, { word: "wood", meaning: "n. 木；木头", pronunciation: "/wʊd/" }, { word: "office", meaning: "n. 办公室", pronunciation: "/ˈɒfɪs/" }, { word: "fill", meaning: "v. 充满", pronunciation: "/fɪl/" }, { word: "application", meaning: "n. 申请", pronunciation: "/ˌæplɪˈkeɪʃn/" }, { word: "interview", meaning: "v. 采访", pronunciation: "/ˈɪntəvjuː/" }, { word: "basic", meaning: "adj. 基本的", pronunciation: "/ˈbeɪsɪk/" }, { word: "branch", meaning: "n. 树枝", pronunciation: "/brɑːntʃ/" }, { word: "root", meaning: "n. 根", pronunciation: "/ruːt/" }, { word: "second-hand", meaning: "adj. 二手的", pronunciation: "/ˌsekəndˈhænd/" }, { word: "excellent", meaning: "adj. 极好的", pronunciation: "/ˈeksələnt/" }, { word: "article", meaning: "n. 文章", pronunciation: "/ˈɑːtɪkl/" }, { word: "factory-farmed", meaning: "adj. 工厂化养殖的", pronunciation: "" }, { word: "ton", meaning: "n. 吨", pronunciation: "/tʌn/" }, { word: "damage", meaning: "n. 损坏", pronunciation: "/ˈdæmɪdʒ/" }, { word: "community", meaning: "n. 社区", pronunciation: "/kəˈmjuːnəti/" }, { word: "flyer", meaning: "n. 小广告传单", pronunciation: "/ˈflaɪər/" }
     ];
-
-    const card = document.getElementById('card');
-    const wordEl = document.getElementById('word');
-    const phoneticEl = document.getElementById('phonetic');
-    const meaningEl = document.getElementById('meaning');
-    const likeBtn = document.getElementById('likeBtn');
-    const randomBtn = document.getElementById('randomBtn');
-    const vocabBtn = document.getElementById('vocabBtn');
-    const modal = document.getElementById('modal');
-    const closeModal = document.getElementById('closeModal');
-    const wordList = document.getElementById('wordList');
-
-    let current = 0;
-    let favorites = JSON.parse(localStorage.getItem('favs')) || [];
-
-    show(current);
-
-    card.addEventListener('click', () => card.classList.toggle('flipped'));
-
-    function show(index) {
-      current = index;
-      const w = words[index];
-      wordEl.textContent = w.word;
-      phoneticEl.textContent = w.phonetic;
-      meaningEl.textContent = w.meaning;
-      card.classList.remove('flipped');
-      updateLike();
+    
+    const uniqueMap = new Map();
+    for (const item of wordsData) {
+        if (!uniqueMap.has(item.word)) uniqueMap.set(item.word, item);
     }
-
-    function random() {
-      let i;
-      do { i = Math.floor(Math.random() * words.length); }
-      while (i === current);
-      show(i);
+    const MASTER_WORD_LIST = Array.from(uniqueMap.values());
+    const TOTAL_WORDS = MASTER_WORD_LIST.length;
+    
+    let currentIndex = 0;
+    let currentSequence = 1;
+    let isFlipped = false;
+    let favoriteSet = new Set();
+    
+    const flipCardEl = document.getElementById('flipCard');
+    const frontWord = document.getElementById('frontWord');
+    const pronounceText = document.getElementById('pronounceText');
+    const partOfSpeechSpan = document.getElementById('partOfSpeech');
+    const defText = document.getElementById('defText');
+    const favBtn = document.getElementById('favBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const wordCounterSpan = document.getElementById('wordCounter');
+    const viewFavBtn = document.getElementById('viewFavBtn');
+    const favModal = document.getElementById('favModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    
+    function loadSequence() {
+        const savedSeq = localStorage.getItem('vocab_sequence_num');
+        if (savedSeq && !isNaN(parseInt(savedSeq))) {
+            let seq = parseInt(savedSeq);
+            if (seq > TOTAL_WORDS) seq = TOTAL_WORDS;
+            if (seq < 1) seq = 1;
+            currentSequence = seq;
+        } else {
+            currentSequence = 1;
+        }
+        const savedWordIdx = localStorage.getItem('vocab_last_index');
+        if (savedWordIdx && !isNaN(parseInt(savedWordIdx))) {
+            let idx = parseInt(savedWordIdx);
+            if (idx >= 0 && idx < TOTAL_WORDS) currentIndex = idx;
+            else currentIndex = 0;
+        } else {
+            currentIndex = 0;
+        }
     }
-
-    randomBtn.addEventListener('click', random);
-
-    likeBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      const w = words[current];
-      const has = favorites.some(x => x.word === w.word);
-      if (has) {
-        favorites = favorites.filter(x => x.word !== w.word);
-      } else {
-        favorites.push(w);
-      }
-      localStorage.setItem('favs', JSON.stringify(favorites));
-      updateLike();
-    });
-
-    function updateLike() {
-      const w = words[current];
-      const isFav = favorites.some(x => x.word === w.word);
-      likeBtn.textContent = isFav ? '♥' : '♡';
-      likeBtn.classList.toggle('active', isFav);
+    function saveSequence() {
+        localStorage.setItem('vocab_sequence_num', currentSequence);
+        localStorage.setItem('vocab_last_index', currentIndex);
     }
-
-    vocabBtn.addEventListener('click', () => {
-      renderList();
-      modal.style.display = 'flex';
-    });
-
-    closeModal.addEventListener('click', () => modal.style.display = 'none');
-    modal.addEventListener('click', e => e.target === modal && (modal.style.display = 'none'));
-
-    function renderList() {
-      if (favorites.length === 0) {
-        wordList.innerHTML = '<div class="empty">生词本为空</div>';
-        return;
-      }
-      wordList.innerHTML = favorites.map((w, i) => `
-        <div class="item">
-          <div class="item-text"><strong>${w.word}</strong><br>${w.meaning}</div>
-          <button class="remove" onclick="del(${i})">移除</button>
-        </div>
-      `).join('');
+    
+    function loadFavorites() {
+        const stored = localStorage.getItem('vocab_favorites');
+        if (stored) {
+            try {
+                const arr = JSON.parse(stored);
+                favoriteSet = new Set(arr);
+            } catch(e) { console.warn(e); }
+        }
+        updateFavButtonStyle();
     }
-
-    window.del = function(index) {
-      favorites.splice(index, 1);
-      localStorage.setItem('favs', JSON.stringify(favorites));
-      renderList();
-      updateLike();
-    };
-  </script>
+    function saveFavorites() {
+        const arr = Array.from(favoriteSet);
+        localStorage.setItem('vocab_favorites', JSON.stringify(arr));
+    }
+    
+    function updateFavButtonStyle() {
+        const currentWordObj = MASTER_WORD_LIST[currentIndex];
+        if (currentWordObj && favoriteSet.has(currentWordObj.word)) {
+            favBtn.innerHTML = '❤️';
+            favBtn.classList.add('active');
+        } else {
+            favBtn.innerHTML = '🤍';
+            favBtn.classList.remove('active');
+        }
+    }
+    
+    function renderCurrentCard(resetFlip = true) {
+        const wordObj = MASTER_WORD_LIST[currentIndex];
+        if (!wordObj) return;
+        frontWord.innerText = wordObj.word;
+        pronounceText.innerText = wordObj.pronunciation || ' ';
+        let meaning = wordObj.meaning;
+        let posHint = meaning.split(' ')[0];
+        if (posHint.length < 6) partOfSpeechSpan.innerText = posHint;
+        else partOfSpeechSpan.innerText = '📖 词汇';
+        defText.innerText = meaning;
+        wordCounterSpan.innerText = `📖 单词 ${currentSequence} / ${TOTAL_WORDS}`;
+        
+        if (resetFlip && isFlipped) {
+            flipCardEl.classList.remove('flipped');
+            isFlipped = false;
+        }
+        updateFavButtonStyle();
+        saveSequence();
+    }
+    
+    function randomNextWord() {
+        let newSeq = currentSequence + 1;
+        if (newSeq > TOTAL_WORDS) {
+            newSeq = 1;
+        }
+        currentSequence = newSeq;
+        
+        let newIndex = Math.floor(Math.random() * TOTAL_WORDS);
+        if (TOTAL_WORDS > 1 && newIndex === currentIndex) {
+            newIndex = (newIndex + 1) % TOTAL_WORDS;
+        }
+        currentIndex = newIndex;
+        renderCurrentCard(true);
+    }
+    
+    function toggleFavorite() {
+        const wordObj = MASTER_WORD_LIST[currentIndex];
+        if (!wordObj) return;
+        const wordKey = wordObj.word;
+        if (favoriteSet.has(wordKey)) {
+            favoriteSet.delete(wordKey);
+        } else {
+            favoriteSet.add(wordKey);
+        }
+        saveFavorites();
+        updateFavButtonStyle();
+    }
+    
+    function showFavModal() {
+        const listUl = document.getElementById('favList');
+        listUl.innerHTML = '';
+        if (favoriteSet.size === 0) {
+            listUl.innerHTML = '<div class="empty-fav">✨ 暂无生词，去收藏一些单词吧 ✨</div>';
+        } else {
+            const favWordsList = Array.from(favoriteSet);
+            favWordsList.forEach(wordText => {
+                const wordData = MASTER_WORD_LIST.find(w => w.word === wordText);
+                if (wordData) {
+                    const li = document.createElement('li');
+                    li.className = 'word-item';
+                    li.innerHTML = `
+                        <div class="word-info">
+                            <strong>${wordData.word}</strong> 
+                            <span class="word-meaning-small">${wordData.meaning.substring(0, 40)}${wordData.meaning.length>40?'…':''}</span>
+                        </div>
+                        <button class="remove-word" data-word="${wordData.word}">移除</button>
+                    `;
+                    listUl.appendChild(li);
+                } else {
+                    const li = document.createElement('li');
+                    li.className = 'word-item';
+                    li.innerHTML = `<div class="word-info">${wordText}</div><button class="remove-word" data-word="${wordText}">移除</button>`;
+                    listUl.appendChild(li);
+                }
+            });
+            document.querySelectorAll('.remove-word').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const w = btn.getAttribute('data-word');
+                    if (favoriteSet.has(w)) {
+                        favoriteSet.delete(w);
+                        saveFavorites();
+                        showFavModal();
+                        if (MASTER_WORD_LIST[currentIndex]?.word === w) updateFavButtonStyle();
+                    }
+                    e.stopPropagation();
+                });
+            });
+        }
+        favModal.style.display = 'flex';
+    }
+    
+    function closeModal() { favModal.style.display = 'none'; }
+    function handleCardFlip() {
+        flipCardEl.classList.toggle('flipped');
+        isFlipped = flipCardEl.classList.contains('flipped');
+    }
+    
+    flipCardEl.addEventListener('click', handleCardFlip);
+    nextBtn.addEventListener('click', randomNextWord);
+    favBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFavorite(); });
+    viewFavBtn.addEventListener('click', showFavModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => { if (e.target === favModal) closeModal(); });
+    
+    function init() {
+        loadSequence();
+        loadFavorites();
+        renderCurrentCard(true);
+    }
+    init();
+</script>
 </body>
 </html>
